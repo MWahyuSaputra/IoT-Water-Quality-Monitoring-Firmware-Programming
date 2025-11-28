@@ -14,7 +14,7 @@
 #define PIN_SCL       22  
 #define PIN_PH_SENSOR 36  
 #define PIN_TURBIDITY 39
-const byte PUMP = 2;
+const byte PUMP = 5;
 
 const char* ssid        = "Wifi Magister Terapan";
 const char* password    = "";
@@ -122,17 +122,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println(messageTemp);
 
-  // --- LOGIKA KONTROL POMPA ---
   // Jika pesan = "ON", nyalakan Relay (LOW atau HIGH tergantung modul relay Anda)
   // Kebanyakan modul relay aktif LOW (LOW = Nyala)
   if (String(topic) == mqtt_topic_control) {
     if(messageTemp == "ON"){
-      digitalWrite(pumpState, HIGH); // Sesuaikan HIGH/LOW dengan relay Anda
+      digitalWrite(PUMP, HIGH); // Sesuaikan HIGH/LOW dengan relay Anda
       pumpState = true;
       Serial.println("Action: Relay ON");
     }
     else if(messageTemp == "OFF"){
-      digitalWrite(pumpState, LOW);
+      digitalWrite(PUMP, LOW);
       pumpState = false;
       Serial.println("Action: Relay OFF");
     }
@@ -189,28 +188,30 @@ void SerialMonitor() {
   }
 }
 
-//Dummy function to simulate data sending
-void Send_to_Dashboard (){
+
+void Send_to_Dashboard () {
   if (!client.connected()) {
     reconnect();
   }
-  client.loop(); // Wajib dipanggil agar bisa terima pesan
+  client.loop();
 
-  unsigned long now = millis();
-  if (now - lastMsg > interval) {
-    lastMsg = now;
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastMsg > interval) {
+    lastMsg = currentMillis;
 
-    float tempWater = 25.0 + (random(0, 50) / 10.0); 
-    float tempAir = 28.0 + (random(0, 40) / 10.0);
-    float hum = 60.0 + (random(0, 200) / 10.0);
-    float press = 1008.0 + random(0, 8);
-    float phVal = 6.5 + (random(0, 200) / 100.0);
-    float ntuVal = random(0, 50);
+    sensors.requestTemperatures();
+    float tempC = sensors.getTempCByIndex(0);
+    float tempBME280 = BME280_Temp.getTemperature();
+    float humBME280  = BME280_Temp.getHumidity();
+    float pressBME280 = BME280_Temp.getPressure();
+
+    float ntuValue = turbidity.getNTU();
+    float phValue = phMeter.getPH();
 
     // Format: {"temp_water":25.5, "temp_air":28.2, "hum":65.0, "press":1010, "ph":7.25, "ntu":10}
     snprintf(msg, MSG_BUFFER_SIZE, 
       "{\"temp_water\":%.2f, \"temp_air\":%.2f, \"hum\":%.1f, \"press\":%.0f, \"ph\":%.2f, \"ntu\":%.0f}",
-      tempWater, tempAir, hum, press, phVal, ntuVal
+      tempC, tempBME280, humBME280, pressBME280, phValue, ntuValue
     );
 
     Serial.print("Publish message: ");
