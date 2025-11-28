@@ -33,6 +33,7 @@ void setup() {
   analogReadResolution(12);       // Resolusi 12-bit (0-4095)
   analogSetAttenuation(ADC_11db); // Range 0-3.3V
 
+  // Init DS18B20
   sensors.begin();
   // Init BME280
   if (!BME280_Temp.begin(PIN_SDA, PIN_SCL)) {
@@ -65,18 +66,11 @@ void loop() {
     float ntuValue = turbidity.getNTU();
     float phValue = phMeter.getPH();
 
-    Serial.print("DSTemp: ");
-    Serial.print(tempC);
-    Serial.print(" | Temp: ");
-    Serial.print(tempBME280);
-    Serial.print(" | Hum: ");
-    Serial.print(humBME280);
-    Serial.print(" | press: ");
-    Serial.print(pressBME280);
-    Serial.print(" | PH: ");
-    Serial.print(phValue, 2);
-    Serial.print(" | NTU: ");
-    Serial.print(ntuValue, 0);
-    Serial.println(" NTU");
+    Serial.print("DSTemp: ");     Serial.print(tempC);
+    Serial.print(" | Temp: ");    Serial.print(tempBME280);
+    Serial.print(" | Hum: ");     Serial.print(humBME280);
+    Serial.print(" | press: ");   Serial.print(pressBME280);
+    Serial.print(" | PH: ");      Serial.print(phValue, 2);
+    Serial.print(" | NTU: ");     Serial.println(ntuValue, 0);
   }
 }
